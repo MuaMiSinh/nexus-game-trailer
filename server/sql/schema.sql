@@ -1,3 +1,4 @@
+USE railway;
 -- =====================================================
 -- NEXUS Game Trailer Hub — MySQL Schema
 -- =====================================================
@@ -5,8 +6,6 @@
 -- Hoặc dùng script: cd server && npm run db:setup
 -- =====================================================
 
-CREATE DATABASE IF NOT EXISTS nexus_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE nexus_db;
 
 -- Users
 CREATE TABLE IF NOT EXISTS users (
@@ -91,3 +90,4 @@ CREATE TABLE IF NOT EXISTS activity_logs (
 CREATE INDEX idx_trailers_genre ON trailers(genre);
 CREATE INDEX idx_trailers_featured ON trailers(featured);
 CREATE INDEX idx_trailers_views ON trailers(views);
+
