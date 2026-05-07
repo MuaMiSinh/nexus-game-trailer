@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
-import { MOCK_USERS } from '@/lib/mock-data';
+import { loginApi, registerApi, setAuthToken } from '@/lib/api';
 import { toast } from 'sonner';
 
 /**
@@ -136,27 +136,33 @@ export default function Auth() {
   const strengthColors = ['', 'bg-neon-red', 'bg-orange-500', 'bg-yellow-500', 'bg-neon-green'];
 
   const onRegister = async (data: z.infer<typeof registerSchema>) => {
-    await new Promise(r => setTimeout(r, 800));
-    toast.success('Đăng ký thành công!');
-    login({
-      id: crypto.randomUUID(), username: data.username, email: data.email,
-      full_name: data.fullName, phone: data.phone, role: 'user', created_at: new Date().toISOString(),
-    });
-    nav('/');
+    try {
+      const { user, token } = await registerApi({
+        username: data.username,
+        email: data.email,
+        password: data.password,
+        fullName: data.fullName,
+        phone: data.phone,
+      });
+      setAuthToken(token);
+      login(user);
+      toast.success('Đăng ký thành công!');
+      nav('/');
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Đăng ký thất bại');
+    }
   };
 
   const onLogin = async (data: z.infer<typeof loginSchema>) => {
-    await new Promise(r => setTimeout(r, 600));
-    // demo: accept admin@nexus.gg / Admin@123 → admin, anything else → user
-    const isAdmin = data.email === 'admin@nexus.gg';
-    const u = MOCK_USERS.find(u => u.email === data.email) || {
-      id: crypto.randomUUID(), username: data.email.split('@')[0], email: data.email,
-      full_name: 'Demo User', role: 'user' as const, created_at: new Date().toISOString(),
-    };
-    const finalUser = isAdmin ? { ...u, role: 'admin' as const } : u;
-    login(finalUser);
-    toast.success(`Chào mừng ${finalUser.username}!`);
-    nav(isAdmin ? '/admin' : '/');
+    try {
+      const { user, token } = await loginApi(data.email, data.password);
+      setAuthToken(token);
+      login(user);
+      toast.success(`Chào mừng ${user.username}!`);
+      nav(user.role === 'admin' ? '/admin' : '/');
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Đăng nhập thất bại');
+    }
   };
 
   return (
