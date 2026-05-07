@@ -8,46 +8,104 @@ import { useAuth } from '@/context/AuthContext';
 import { MOCK_USERS } from '@/lib/mock-data';
 import { toast } from 'sonner';
 
-// 27-class registration schema
-const usernameSchema = z.string()
-  .min(5, 'Username phải ≥ 5 ký tự')
-  .max(20, 'Username phải ≤ 20 ký tự')
-  .refine(v => !/\s/.test(v), 'Username không được chứa khoảng trắng')
-  .refine(v => /[A-Z]/.test(v), 'Username phải có chữ hoa')
-  .refine(v => /[0-9]/.test(v), 'Username phải có số')
-  .refine(v => /[!@#$%^&*]/.test(v), 'Username phải có ký tự đặc biệt');
+/**
+ * 27-class registration schema messages (theo yêu cầu bạn gửi)
+ * Mục tiêu: khi lỗi ở từng "lớp/điều kiện" thì hiện đúng thông báo.
+ */
+const registerSchema = z
+  .object({
+    username: z.string(),
+    email: z.string(),
+    password: z.string(),
+    confirmPassword: z.string(),
+    fullName: z.string(),
+    phone: z.string(),
+    agree: z.boolean(),
+  })
+  .superRefine((d, ctx) => {
+  // Username
+  const username = d.username ?? '';
+  if (username.length === 0) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['username'], message: 'Tên đăng nhập không được để trống' });
+  } else if (username.length < 5) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['username'], message: 'Tên đăng nhập không hợp lệ' });
+  } else if (username.length > 20) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['username'], message: 'Tên đăng nhập không hợp lệ' });
+  } else if (/\s/.test(username)) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['username'], message: 'Tên đăng nhập không hợp lệ' });
+  } else if (!/[A-Z]/.test(username)) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['username'], message: 'Tên đăng nhập không hợp lệ' });
+  } else if (!/[0-9]/.test(username)) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['username'], message: 'Tên đăng nhập không hợp lệ' });
+  } else if (!/[!@#$%^&*]/.test(username)) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['username'], message: 'Tên đăng nhập không hợp lệ' });
+  }
 
-const emailSchema = z.string()
-  .min(1, 'Email không được để trống')
-  .email('Email không hợp lệ')
-  .endsWith('@gmail.com', 'Chỉ chấp nhận email Gmail');
+  // Email
+  const email = d.email ?? '';
+  if (email.length === 0) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['email'], message: 'Email không được để trống' });
+  } else if (!email.includes('@')) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['email'], message: 'Email không đúng định dạng' });
+  } else if (!email.toLowerCase().endsWith('@gmail.com')) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['email'], message: 'Email không đúng định dạng' });
+  }
 
-const passwordSchema = z.string()
-  .min(6, 'Mật khẩu phải ≥ 6 ký tự')
-  .max(30, 'Mật khẩu phải ≤ 30 ký tự')
-  .refine(v => /[A-Z]/.test(v), 'Thiếu chữ hoa')
-  .refine(v => /[0-9]/.test(v), 'Thiếu số')
-  .refine(v => /[!@#$%^&*]/.test(v), 'Thiếu ký tự đặc biệt');
+  // Password
+  const password = d.password ?? '';
+  if (password.length === 0) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['password'], message: 'Mật khẩu không được để trống' });
+  } else if (password.length < 6) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['password'], message: 'Mật khẩu tối thiểu 8 ký tự' });
+  } else if (password.length > 30) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['password'], message: 'Mật khẩu không hợp lệ' });
+  } else if (!/[A-Z]/.test(password)) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['password'], message: 'Mật khẩu không hợp lệ' });
+  } else if (!/[0-9]/.test(password)) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['password'], message: 'Mật khẩu không hợp lệ' });
+  } else if (!/[!@#$%^&*]/.test(password)) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['password'], message: 'Mật khẩu không hợp lệ' });
+  }
 
-const fullNameSchema = z.string()
-  .min(1, 'Họ tên không được trống')
-  .refine(v => !/[^a-zA-ZÀ-ỹ\s]/.test(v), 'Không có ký tự đặc biệt')
-  .refine(v => !/\d/.test(v), 'Không có số')
-  .refine(v => !/\s{2,}/.test(v), 'Không có khoảng trắng liên tiếp');
+  // Confirm password
+  const confirmPassword = d.confirmPassword ?? '';
+  if (confirmPassword.length === 0) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['confirmPassword'], message: 'Vui lòng xác nhận mật khẩu' });
+  } else if (confirmPassword !== password) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['confirmPassword'], message: 'Mật khẩu xác nhận không khớp' });
+  }
 
-const phoneSchema = z.string()
-  .length(10, 'Số điện thoại phải đúng 10 số')
-  .refine(v => /^\d+$/.test(v), 'Chỉ được nhập số');
+  // Full name
+  const fullName = d.fullName ?? '';
+  if (fullName.length === 0) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['fullName'], message: 'Họ tên không được để trống' });
+  } else if (fullName.length > 30) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['fullName'], message: 'Họ tên không hợp lệ' });
+  } else if (/[^a-zA-ZÀ-ỹ\s]/.test(fullName)) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['fullName'], message: 'Họ tên không hợp lệ' });
+  } else if (/\d/.test(fullName)) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['fullName'], message: 'Họ tên không hợp lệ' });
+  } else if (/\s{2,}/.test(fullName)) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['fullName'], message: 'Họ tên không hợp lệ' });
+  }
 
-const registerSchema = z.object({
-  username: usernameSchema,
-  email: emailSchema,
-  password: passwordSchema,
-  confirmPassword: z.string().min(1, 'Vui lòng xác nhận mật khẩu'),
-  fullName: fullNameSchema,
-  phone: phoneSchema,
-  agree: z.literal(true, { message: 'Bạn phải đồng ý điều khoản' }),
-}).refine(d => d.password === d.confirmPassword, { message: 'Mật khẩu không khớp', path: ['confirmPassword'] });
+  // Phone
+  const phone = d.phone ?? '';
+  if (phone.length === 0) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['phone'], message: 'Số điện thoại không được để trống' });
+  } else if (!/^\d+$/.test(phone)) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['phone'], message: 'Số điện thoại không hợp lệ' });
+  } else if (phone.length < 10) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['phone'], message: 'Số điện thoại không hợp lệ' });
+  } else if (phone.length > 10) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['phone'], message: 'Số điện thoại không hợp lệ' });
+  }
+
+  // Agree
+  if (d.agree !== true) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['agree'], message: 'Vui lòng chấp nhận điều khoản' });
+  }
+});
 
 const loginSchema = z.object({
   email: z.string().email('Email không hợp lệ'),
@@ -141,7 +199,7 @@ export default function Auth() {
               className="card-cyber p-8 space-y-4">
               <h2 className="font-display text-2xl text-gradient-cyber">Create Account</h2>
               <Field label="Username" error={reg.formState.errors.username?.message}>
-                <input {...reg.register('username')} className={`input-cyber ${reg.formState.errors.username ? 'error' : ''}`} placeholder="GamerX@123"/>
+                <input {...reg.register('username')} className={`input-cyber ${reg.formState.errors.username ? 'error' : ''}`} placeholder=""/>
               </Field>
               <Field label="Email (Gmail)" error={reg.formState.errors.email?.message}>
                 <input {...reg.register('email')} className={`input-cyber ${reg.formState.errors.email ? 'error' : ''}`}/>
@@ -166,14 +224,14 @@ export default function Auth() {
                 <input {...reg.register('fullName')} className={`input-cyber ${reg.formState.errors.fullName ? 'error' : ''}`}/>
               </Field>
               <Field label="Số điện thoại" error={reg.formState.errors.phone?.message}>
-                <input {...reg.register('phone')} className={`input-cyber ${reg.formState.errors.phone ? 'error' : ''}`} placeholder="0901234567"/>
+                <input {...reg.register('phone')} className={`input-cyber ${reg.formState.errors.phone ? 'error' : ''}`} placeholder=""/>
               </Field>
               <label className="flex items-start gap-2 text-sm">
                 <input type="checkbox" {...reg.register('agree')} className="mt-1"/>
                 <span className="text-muted-foreground">Tôi đồng ý với <span className="text-neon-cyan">điều khoản dịch vụ</span></span>
               </label>
               {reg.formState.errors.agree && <p className="text-xs text-neon-red">{reg.formState.errors.agree.message}</p>}
-              <button disabled={!reg.formState.isValid || reg.formState.isSubmitting} className="btn-cyber w-full">
+              <button disabled={reg.formState.isSubmitting} className="btn-cyber w-full">
                 {reg.formState.isSubmitting ? 'Đang xử lý...' : 'Đăng ký'}
               </button>
             </motion.form>
