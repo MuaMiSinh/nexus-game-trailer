@@ -56,7 +56,7 @@ const registerSchema = z
   if (password.length === 0) {
     ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['password'], message: 'Mật khẩu không được để trống' });
   } else if (password.length < 6) {
-    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['password'], message: 'Mật khẩu tối thiểu 8 ký tự' });
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['password'], message: 'Mật khẩu không hợp lệ' });
   } else if (password.length > 30) {
     ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['password'], message: 'Mật khẩu không hợp lệ' });
   } else if (!/[A-Z]/.test(password)) {
