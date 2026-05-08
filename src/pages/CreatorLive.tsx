@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { Copy, Radio } from 'lucide-react';
 import { toast } from 'sonner';
+import { SmartVideoPlayer } from '@/components/media/SmartVideoPlayer';
 
 export default function CreatorLive() {
   const [title, setTitle] = useState('My Awesome Stream');
+  const [previewUrl, setPreviewUrl] = useState('https://www.youtube.com/watch?v=jfKfPfyJRdk');
   const [streamKey] = useState(() => 'sk_live_' + Math.random().toString(36).slice(2, 14));
   const rtmpUrl = 'rtmp://your-server.com/live';
 
@@ -39,6 +41,28 @@ export default function CreatorLive() {
             <input readOnly value={streamKey} type="password" className="input-cyber flex-1"/>
             <button onClick={() => copy(streamKey, 'Stream Key')} className="btn-ghost-cyber !py-2 !px-3"><Copy size={16}/></button>
           </div>
+        </div>
+
+        <div>
+          <label className="font-heading uppercase tracking-wider text-xs text-foreground/70 mb-1.5 block">
+            Preview Playback URL (YouTube / Twitch / .m3u8 / .mp4)
+          </label>
+          <input
+            value={previewUrl}
+            onChange={e => setPreviewUrl(e.target.value)}
+            className="input-cyber"
+            placeholder="https://www.youtube.com/watch?v=..."
+          />
+        </div>
+
+        <div className="rounded-lg overflow-hidden border border-neon-cyan/30 aspect-video">
+          <SmartVideoPlayer
+            url={previewUrl}
+            title={title}
+            className="w-full h-full"
+            isLive
+            autoPlay
+          />
         </div>
 
         <div className="border-t border-border pt-5">

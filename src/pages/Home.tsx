@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Play, ChevronLeft, ChevronRight, Search, TrendingUp, Sparkles } from 'lucide-react';
 import { TRAILERS, GENRES } from '@/lib/mock-data';
 import { TrailerCard } from '@/components/trailer/TrailerCard';
+import { SmartVideoPlayer } from '@/components/media/SmartVideoPlayer';
 
 export default function Home() {
   const featured = TRAILERS.filter(t => t.featured);
@@ -77,6 +78,27 @@ export default function Home() {
             </div>
             <button onClick={() => setSlide(s => (s + 1) % featured.length)}
               className="w-10 h-10 rounded-full glass flex items-center justify-center"><ChevronRight size={18}/></button>
+          </div>
+        </div>
+      </section>
+
+      {/* FEATURED VIDEO */}
+      <section className="container -mt-16 relative z-20">
+        <div className="card-cyber p-4 md:p-6">
+          <div className="flex items-center justify-between gap-3 mb-4">
+            <h2 className="font-display text-2xl md:text-3xl text-glow-cyan">WATCH FEATURED TRAILER</h2>
+            <Link to={`/game/${hero.slug}`} className="btn-ghost-cyber !py-2 !px-4 !text-xs">
+              Open Detail
+            </Link>
+          </div>
+          <div className="aspect-video rounded-lg overflow-hidden border border-neon-cyan/30">
+            <SmartVideoPlayer
+              url={hero.video_url}
+              title={hero.title}
+              className="w-full h-full"
+              autoPlay
+              muted
+            />
           </div>
         </div>
       </section>

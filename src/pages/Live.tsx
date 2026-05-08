@@ -5,6 +5,7 @@ import { Radio, Eye, Send } from 'lucide-react';
 import { LIVESTREAMS, MOCK_CHAT } from '@/lib/mock-data';
 import { useAuth } from '@/context/AuthContext';
 import type { LiveMessage } from '@/types';
+import { SmartVideoPlayer } from '@/components/media/SmartVideoPlayer';
 
 export default function Live() {
   const { id } = useParams();
@@ -95,7 +96,13 @@ function LivePlayer({ id }: { id: string }) {
       <div className="grid lg:grid-cols-[1fr_360px] gap-6">
         <div>
           <div className="relative aspect-video rounded-lg overflow-hidden border-neon">
-            <iframe src={stream.playback_url} className="w-full h-full" allow="autoplay; fullscreen" allowFullScreen/>
+            <SmartVideoPlayer
+              url={stream.playback_url}
+              title={stream.title}
+              className="w-full h-full"
+              autoPlay
+              isLive
+            />
             <div className="absolute top-3 left-3 flex items-center gap-2 px-3 py-1.5 rounded bg-neon-red font-heading uppercase text-xs tracking-wider relative live-pulse">
               <span className="w-2 h-2 rounded-full bg-foreground animate-pulse"/> Live
             </div>
@@ -106,6 +113,9 @@ function LivePlayer({ id }: { id: string }) {
           <h1 className="font-display text-3xl mt-4 text-glow-purple">{stream.title}</h1>
           <p className="font-heading text-neon-cyan">{stream.streamer}</p>
           <p className="text-sm text-muted-foreground mt-2">{stream.description}</p>
+          <p className="text-xs text-foreground/70 mt-3">
+            Ho tro stream that tu YouTube, Twitch, hoac link phat truc tiep `.m3u8` / `.mp4`.
+          </p>
         </div>
 
         <aside className="card-cyber flex flex-col h-[600px]">
